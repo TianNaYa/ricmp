@@ -3,7 +3,7 @@
 void entry( void )
 {
     PICMP icmp         = NULL;
-    char  data[ 1024 ] = { 0 };
+    char  data[ 2000 ] = { 0 };
 
     printf( "Pid: %d\n", GetCurrentProcessId() );
 
@@ -13,11 +13,16 @@ void entry( void )
         return;
     }
 
-    icmp_send( icmp, "hello", 6 );
+    while ( TRUE )
+    {
+        icmp_send( icmp, data, sprintf( data, "hello %d", GetCurrentProcessId() ) );
 
-    icmp_recv( icmp, data, sizeof( data ) );
+        memset( data, 0, sizeof( data ) );
 
-    printf( "Recv: %s\n", data );
+        icmp_recv( icmp, data, sizeof( data ) );
+
+        printf( "Recv: %s\n", data );
+    }
 
     icmp_free( icmp );
 }

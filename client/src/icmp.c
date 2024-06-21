@@ -137,9 +137,17 @@ int icmp_recv( PICMP icmp, unsigned char *buf, int len )
     {
         ikcp_update( icmp->ikcp, GetTickCount() );
 
-        if ( ( size = recvfrom( icmp->sock, data, sizeof( data ), 0, NULL, NULL ) ) <= 0 )
+        if ( ( size = recvfrom( icmp->sock, data, sizeof( data ), 0, NULL, NULL ) ) < 0 )
         {
-            break;
+            if ( WSAEWOULDBLOCK != WSAGetLastError() )
+            {
+                break;
+            }
+        }
+
+        if ( size <= 0 )
+        {
+            Sleep( 10 ); continue;
         }
 
         header_ip   = C_PTR( data );
@@ -162,9 +170,9 @@ int icmp_recv( PICMP icmp, unsigned char *buf, int len )
             break;
         }
 
-        Sleep( 10 );
+        memset( buf, 0, sizeof( buf ) );
     }
-    
+
     return size;
 }
 
