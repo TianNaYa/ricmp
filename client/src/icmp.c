@@ -33,6 +33,18 @@ static int initialize_winsock( void )
     return FALSE;
 }
 
+static int set_nonblocking( SOCKET sockfd ) 
+{
+    u_long mode = 1;
+
+    if ( ioctlsocket(sockfd, FIONBIO, &mode) != NO_ERROR ) 
+    {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 int icmp_output( const char *buf, int len, ikcpcb *kcp, PICMP icmp )
 {
     PICMP_HEADER Header = { 0 };
@@ -84,6 +96,11 @@ PICMP icmp_init( char *host )
     icmp->seq                  = 0;
 
     if ( icmp->sock == INVALID_SOCKET )
+    {
+        icmp_free( icmp ); return NULL;
+    }
+
+    if ( ! set_nonblocking( icmp->sock ) )
     {
         icmp_free( icmp ); return NULL;
     }
@@ -144,6 +161,8 @@ int icmp_recv( PICMP icmp, unsigned char *buf, int len )
         {
             break;
         }
+
+        Sleep( 10 );
     }
     
     return size;
